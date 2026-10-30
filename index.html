@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedro — Desenvolvedor de Sistemas | Portfólio 3D Cinematográfico</title>
+  
+  <!-- SEO & Metadados -->
+  <meta name="description" content="Portfólio 3D cinematográfico e imersivo de Pedro, estudante e desenvolvedor de sistemas especializado em interfaces claras, front-end e experiências digitais interativas.">
+  <meta name="author" content="Pedro">
+  <meta name="keywords" content="Pedro, Desenvolvedor de Sistemas, Front-end, Three.js, Portfólio 3D, Web Design Cinematográfico, JavaScript, UI/UX">
+  <meta name="theme-color" content="#050505">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Pedro — Desenvolvedor de Sistemas">
+  <meta property="og:description" content="Transformando ideias em experiências digitais. Portfólio 3D interativo inspirado em arquitetura e cinematografia digital.">
+  <meta property="og:type" content="website">
+
+  <!-- Tipografia: Space Grotesk + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Estilos Principais -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js (Local com Fallback CDN) -->
+  <script src="three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>');
+    }
+  </script>
+</head>
+<body class="is-loading">
+
+  <!-- Canvas WebGL Tridimensional em Segundo Plano -->
+  <div id="webgl-container" aria-hidden="true">
+    <canvas id="webgl-canvas"></canvas>
+    <div class="webgl-vignette"></div>
+    <div class="webgl-noise"></div>
+  </div>
+
+  <!-- Cursor Customizado Cinematográfico -->
+  <div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+
+  <!-- Barra de Progresso de Rolagem Cinematográfica -->
+  <div class="scroll-progress-bar" id="scroll-progress-bar" aria-hidden="true"></div>
+
+  <!-- Indicador Lateral de Seções (Estilo Santamaria) -->
+  <nav class="side-navigator" aria-label="Navegação rápida por seções">
+    <a href="#hero" class="side-nav-dot active" data-section="hero" aria-label="Início">
+      <span class="side-nav-label">00 // INÍCIO</span>
+    </a>
+    <a href="#sobre" class="side-nav-dot" data-section="sobre" aria-label="Sobre">
+      <span class="side-nav-label">01 // SOBRE</span>
+    </a>
+    <a href="#habilidades" class="side-nav-dot" data-section="habilidades" aria-label="Habilidades">
+      <span class="side-nav-label">02 // HABILIDADES</span>
+    </a>
+    <a href="#projetos" class="side-nav-dot" data-section="projetos" aria-label="Projetos">
+      <span class="side-nav-label">03 // PROJETOS</span>
+    </a>
+    <a href="#contato" class="side-nav-dot" data-section="contato" aria-label="Contato">
+      <span class="side-nav-label">04 // CONTATO</span>
+    </a>
+  </nav>
+
+  <!-- Cabeçalho Fixo / Barra de Navegação Superior -->
+  <header class="site-header" id="site-header">
+    <div class="header-container">
+      <a href="#hero" class="brand-link" aria-label="Pedro - Página Inicial">
+        <span class="brand-name">PEDRO</span>
+        <span class="brand-tag">™</span>
+        <span class="brand-status"><span class="status-pulse"></span>DISPONÍVEL</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Navegação Principal">
+        <ul class="nav-links">
+          <li><a href="#sobre" class="nav-link"><span class="nav-num">01.</span> Sobre</a></li>
+          <li><a href="#habilidades" class="nav-link"><span class="nav-num">02.</span> Habilidades</a></li>
+          <li><a href="#projetos" class="nav-link"><span class="nav-num">03.</span> Projetos</a></li>
+          <li><a href="#contato" class="nav-link"><span class="nav-num">04.</span> Contato</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <!-- Controle de Áudio Ambiente Opcional -->
+        <button id="audio-toggle" class="audio-btn" type="button" aria-label="Alternar som atmosférico" title="Som cinematográfico">
+          <span class="audio-icon">
+            <span class="sound-wave wave-1"></span>
+            <span class="sound-wave wave-2"></span>
+            <span class="sound-wave wave-3"></span>
+          </span>
+          <span class="audio-label">ÁUDIO: OFF</span>
+        </button>
+
+        <a href="#contato" class="header-cta-btn">Vamos Conversar</a>
+
+        <!-- Botão Menu Mobile -->
+        <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menu de navegação" aria-expanded="false">
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Menu Mobile Overlay -->
+  <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+    <div class="mobile-menu-inner">
+      <p class="mobile-menu-label">// NAVEGAÇÃO</p>
+      <ul class="mobile-nav-links">
+        <li><a href="#hero" class="mobile-link"><span>00</span> Início</a></li>
+        <li><a href="#sobre" class="mobile-link"><span>01</span> Sobre Mim</a></li>
+        <li><a href="#habilidades" class="mobile-link"><span>02</span> Habilidades</a></li>
+        <li><a href="#projetos" class="mobile-link"><span>03</span> Projetos</a></li>
+        <li><a href="#contato" class="mobile-link"><span>04</span> Contato</a></li>
+      </ul>
+      <div class="mobile-menu-footer">
+        <p>PEDRO — DESENVOLVEDOR DE SISTEMAS</p>
+        <a href="mailto:p2010hv@gmail.com">p2010hv@gmail.com</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conteúdo Principal com Scroll Espacial -->
+  <main id="main-content">
+
+    <!-- 00 // HERO: ABERTURA CINEMATOGRÁFICA -->
+    <section class="section hero-section" id="hero" data-scene="hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-icon">✶</span>
+          <span class="badge-text">DESENVOLVIMENTO DE SISTEMAS &amp; INTERFACES</span>
+        </div>
+
+        <h1 class="hero-title">
+          <span class="title-line title-name">PEDRO</span>
+          <span class="title-sub">Estudante de Desenvolvimento de Sistemas</span>
+        </h1>
+
+        <blockquote class="hero-motto">
+          “Transformando ideias em experiências digitais.”
+        </blockquote>
+
+        <p class="hero-intro">
+          Sou Pedro, Desenvolvedor de Sistemas. Gosto de transformar ideias em soluções digitais funcionais, com foco em interfaces claras e código organizado.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#projetos" class="btn btn-primary" id="btn-explore-projects">
+            <span>Explorar projetos</span>
+            <svg class="btn-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 7H13M13 7L7 1M13 7L7 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a href="#contato" class="btn btn-outline" id="btn-contact-hero">
+            <span>Entrar em contato</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Indicador de Rolagem Minimalista -->
+      <a href="#sobre" class="scroll-cue" aria-label="Rolar para a próxima seção">
+        <span class="scroll-cue-text">EXPLORAR ESPAÇO</span>
+        <div class="scroll-cue-line">
+          <div class="scroll-cue-pip"></div>
+        </div>
+      </a>
+
+      <!-- Painel de Telemetria Visual (Estilo Santamaria) -->
+      <div class="telemetry-box" aria-hidden="true">
+        <span class="telem-item telem-coords">SYS // 3D RENDER ENGINE</span>
+        <span class="telem-item telem-axis">CAMERA: ACTIVE</span>
+        <span class="telem-item telem-fps">60 FPS</span>
+      </div>
+    </section>
+
+    <!-- 01 // SOBRE MIM: ALÉM DO CÓDIGO -->
+    <section class="section about-section" id="sobre" data-scene="sobre">
+      <div class="section-container">
+        <header class="section-header">
+          <p class="section-tag">// 01. VISÃO &amp; PROPÓSITO</p>
+          <h2 class="section-title">Além do código.</h2>
+        </header>
+
+        <div class="about-grid">
+          <div class="about-card glass-panel">
+            <p class="about-lead">
+              Sou Pedro, Desenvolvedor de Sistemas. Gosto de transformar ideias em soluções digitais funcionais, com foco em interfaces claras e código organizado.
+            </p>
+            <p class="about-body">
+              Tenho interesse em desenvolvimento front-end, construção de interfaces e aplicação de tecnologias para criar experiências digitais úteis, organizadas e visualmente consistentes.
+            </p>
+
+            <div class="about-pillars">
+              <div class="pillar-item">
+                <div class="pillar-icon">01</div>
+                <div>
+                  <h3 class="pillar-title">Clareza &amp; Estrutura</h3>
+                  <p class="pillar-desc">Interfaces com hierarquia objetiva, sem ruídos desnecessários e focadas na experiência do usuário.</p>
+                </div>
+              </div>
+              <div class="pillar-item">
+                <div class="pillar-icon">02</div>
+                <div>
+                  <h3 class="pillar-title">Código Organizado</h3>
+                  <p class="pillar-desc">Padrões limpos, arquitetura sustentável e compromisso com manutenibilidade contínua.</p>
+                </div>
+              </div>
+              <div class="pillar-item">
+                <div class="pillar-icon">03</div>
+                <div>
+                  <h3 class="pillar-title">Inovação Espacial</h3>
+                  <p class="pillar-desc">Exploração de novas fronteiras digitais com profundidade 3D, cinematografia e dinamismo.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card de Visão Espacial -->
+          <div class="spatial-card glass-panel" aria-hidden="true">
+            <div class="spatial-header">
+              <span class="spatial-tag">ARQUITETURA DE DADOS</span>
+              <span class="spatial-status">MATRIZ CONCEITUAL</span>
+            </div>
+            <div class="spatial-blueprint">
+              <div class="blueprint-line"></div>
+              <div class="blueprint-line"></div>
+              <div class="blueprint-line"></div>
+              <div class="blueprint-center">
+                <span>TRANSFORMAÇÃO</span>
+              </div>
+            </div>
+            <p class="spatial-caption">
+              “A tecnologia ganha sentido quando traduz complexidade em soluções acessíveis e envolventes.”
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 // HABILIDADES: FERRAMENTAS PARA TRANSFORMAR IDEIAS -->
+    <section class="section skills-section" id="habilidades" data-scene="habilidades">
+      <div class="section-container">
+        <header class="section-header">
+          <p class="section-tag">// 02. COMPETÊNCIAS &amp; STACK</p>
+          <h2 class="section-title">Ferramentas para transformar ideias.</h2>
+          <p class="section-subtitle">
+            Selecione uma competência para inspecionar os detalhes técnicos e interagir com o módulo tridimensional.
+          </p>
+        </header>
+
+        <div class="skills-layout">
+          <!-- Lista Interativa de Habilidades -->
+          <div class="skills-list" role="tablist" aria-label="Lista de Habilidades">
+            
+            <button class="skill-item active" type="button" role="tab" aria-selected="true" data-skill="frontend" id="tab-frontend">
+              <span class="skill-index">01</span>
+              <span class="skill-name">Front-end</span>
+              <span class="skill-arrow">↗</span>
+            </button>
+
+            <button class="skill-item" type="button" role="tab" aria-selected="false" data-skill="html5" id="tab-html5">
+              <span class="skill-index">02</span>
+              <span class="skill-name">HTML5</span>
+              <span class="skill-arrow">↗</span>
+            </button>
+
+            <button class="skill-item" type="button" role="tab" aria-selected="false" data-skill="css3" id="tab-css3">
+              <span class="skill-index">03</span>
+              <span class="skill-name">CSS3</span>
+              <span class="skill-arrow">↗</span>
+            </button>
+
+            <button class="skill-item" type="button" role="tab" aria-selected="false" data-skill="javascript" id="tab-javascript">
+              <span class="skill-index">04</span>
+              <span class="skill-name">JavaScript</span>
+              <span class="skill-arrow">↗</span>
+            </button>
+
+            <button class="skill-item" type="button" role="tab" aria-selected="false" data-skill="ai" id="tab-ai">
+              <span class="skill-index">05</span>
+              <span class="skill-name">Inteligência Artificial</span>
+              <span class="skill-arrow">↗</span>
+            </button>
+
+          </div>
+
+          <!-- Painel Dinâmico de Detalhes da Habilidade -->
+          <div class="skill-inspector glass-panel" id="skill-inspector" aria-live="polite">
+            <div class="inspector-header">
+              <span class="inspector-badge" id="skill-tag">COMPETÊNCIA CORE</span>
+              <span class="inspector-tech" id="skill-category">INTERFACE &amp; EXPERIÊNCIA</span>
+            </div>
+
+            <h3 class="inspector-title" id="skill-title">Front-end</h3>
+            <p class="inspector-description" id="skill-desc">
+              Criação de interfaces digitais responsivas, acessíveis e focadas no usuário. Aplicação prática de design systems, tipografia apurada e harmonia visual para garantir navegabilidade fluida e intuitiva.
+            </p>
+
+            <div class="inspector-meta">
+              <div class="meta-block">
+                <span class="meta-label">APLICAÇÃO</span>
+                <span class="meta-val" id="skill-app">Web Apps, Landing Pages &amp; Portfólios</span>
+              </div>
+              <div class="meta-block">
+                <span class="meta-label">FOCO PRINCIPAL</span>
+                <span class="meta-val" id="skill-focus">Usabilidade, Fluidez &amp; Performance</span>
+              </div>
+            </div>
+
+            <div class="inspector-action-hint">
+              <span class="hint-dot"></span>
+              <span>Módulo 3D posicionado em tempo real no espaço tridimensional.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 // PROJETOS: PROJETOS QUE GANHAM VIDA -->
+    <section class="section projects-section" id="projetos" data-scene="projetos">
+      <div class="section-container">
+        <header class="section-header">
+          <p class="section-tag">// 03. CASOS DE ESTUDO &amp; PRODUÇÃO</p>
+          <h2 class="section-title">Projetos que ganham vida.</h2>
+          <p class="section-subtitle">Experimentos, aplicações e ideias transformadas em código.</p>
+        </header>
+
+        <div class="projects-container">
+
+          <!-- PROJETO 01: SINUCA GAME -->
+          <article class="project-showcase glass-panel" data-project-scene="sinuca" id="project-sinuca">
+            <div class="project-meta-strip">
+              <span class="proj-num">PROJETO 01</span>
+              <span class="proj-type">JOGO WEB &amp; FÍSICA NO NAVEGADOR</span>
+              <span class="proj-status">ONLINE ↗</span>
+            </div>
+
+            <div class="project-grid">
+              <div class="project-info">
+                <h3 class="project-title">Sinuca Game</h3>
+                <p class="project-summary">
+                  Jogo de sinuca desenvolvido para navegador.
+                </p>
+                <p class="project-detail">
+                  Uma experiência recreativa construída com lógica de colisões, ângulos e mecânica de tacadas em tempo real. O cenário 3D ao lado representa a mesa estilizada com tecido esmeralda profundo, bolas com reflexos físicos e iluminação direcional cinematográfica.
+                </p>
+
+                <div class="project-tech-tags">
+                  <span class="tech-tag">HTML5 Canvas</span>
+                  <span class="tech-tag">JavaScript Puro</span>
+                  <span class="tech-tag">Mecânica de Física</span>
+                  <span class="tech-tag">Vercel Deploy</span>
+                </div>
+
+                <div class="project-actions">
+                  <a href="https://sinucagame.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary" id="btn-project-sinuca">
+                    <span>Explorar projeto ↗</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="project-spatial-frame">
+                <div class="spatial-stage-cue">
+                  <span class="cue-label">COMPOSIÇÃO 3D INTERATIVA</span>
+                  <p class="cue-desc">Mesa de bilhar estilizada com física de iluminação em tempo real</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- PROJETO 02: TASKLY -->
+          <article class="project-showcase glass-panel" data-project-scene="taskly" id="project-taskly">
+            <div class="project-meta-strip">
+              <span class="proj-num">PROJETO 02</span>
+              <span class="proj-type">PRODUTIVIDADE &amp; GESTÃO</span>
+              <span class="proj-status">ONLINE ↗</span>
+            </div>
+
+            <div class="project-grid">
+              <div class="project-info">
+                <h3 class="project-title">Taskly</h3>
+                <p class="project-summary">
+                  Aplicação para organização e gerenciamento de tarefas.
+                </p>
+                <p class="project-detail">
+                  Desenvolvido para simplificar rotinas diárias com foco em usabilidade, organização visual por status e produtividade sem distrações. A composição tridimensional reflete cartões espaciais e módulos de trabalho suspensos no ambiente digital.
+                </p>
+
+                <div class="project-tech-tags">
+                  <span class="tech-tag">JavaScript</span>
+                  <span class="tech-tag">UI/UX Minimalista</span>
+                  <span class="tech-tag">Gerenciamento de Estado</span>
+                  <span class="tech-tag">Vercel Deploy</span>
+                </div>
+
+                <div class="project-actions">
+                  <a href="https://taskl-yatt.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary" id="btn-project-taskly">
+                    <span>Explorar projeto ↗</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="project-spatial-frame">
+                <div class="spatial-stage-cue">
+                  <span class="cue-label">COMPOSIÇÃO 3D INTERATIVA</span>
+                  <p class="cue-desc">Estrutura Kanban tridimensional com cartões translúcidos e nós de status</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- PROJETO 03: APOSTILA DE EXCEL (NOVO PROJETO ADICIONADO DO PDF FORNECIDO) -->
+          <article class="project-showcase glass-panel" data-project-scene="apostila" id="project-apostila">
+            <div class="project-meta-strip">
+              <span class="proj-num">PROJETO 03</span>
+              <span class="proj-type">PUBLICAÇÃO &amp; INCLUSÃO DIGITAL</span>
+              <span class="proj-status">DOCUMENTO OFICIAL // PDF</span>
+            </div>
+
+            <div class="project-grid">
+              <div class="project-info">
+                <div class="author-tag">AUTOR: PEDRO HENRIQUE • 1º BT.I</div>
+                <h3 class="project-title">Apostila de Excel — Para Melhor Idade</h3>
+                <p class="project-summary">
+                  Material educacional ilustrado e guia de inclusão digital desenvolvido com didática clara e passo a passo acessível.
+                </p>
+                <p class="project-detail">
+                  Um projeto autoral completo de 30 páginas concebido para acolher e capacitar a terceira idade no universo da tecnologia. Aborda desde como ligar o computador, componentes da tela inicial, digitação e formatação de planilhas, até fórmulas matemáticas essenciais (=SOMA, =MÉDIA, operações) e exemplos práticos da rotina doméstica.
+                </p>
+
+                <div class="project-tech-tags">
+                  <span class="tech-tag">Educação Digital</span>
+                  <span class="tech-tag">Design Instrucional</span>
+                  <span class="tech-tag">Acessibilidade</span>
+                  <span class="tech-tag">Microsoft Excel</span>
+                  <span class="tech-tag">30 Páginas Ilustradas</span>
+                </div>
+
+                <div class="project-actions">
+                  <button type="button" class="btn btn-primary" id="btn-open-pdf-modal">
+                    <span>Visualizar Apostila ↗</span>
+                  </button>
+                  <a href="apostila-excel.pdf" download="Apostila-Excel-Melhor-Idade-Pedro-Henrique.pdf" class="btn btn-outline" id="btn-download-pdf">
+                    <span>Baixar PDF ↓</span>
+                  </a>
+                </div>
+              </div>
+
+              <div class="project-spatial-frame">
+                <div class="spatial-stage-cue">
+                  <span class="cue-label">COMPOSIÇÃO 3D INTERATIVA</span>
+                  <p class="cue-desc">Caderno editorial espacial com reticulado tridimensional e matriz de cálculo</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 // CONTATO: VAMOS CRIAR ALGO INTERESSANTE? -->
+    <section class="section contact-section" id="contato" data-scene="contato">
+      <div class="section-container">
+        <div class="contact-wrap glass-panel">
+          <header class="contact-header">
+            <p class="section-tag">// 04. COMUNICAÇÃO DIRETA</p>
+            <h2 class="contact-title">Vamos criar algo interessante?</h2>
+            <p class="contact-intro">
+              Tem uma ideia, um projeto ou uma oportunidade? Entre em contato.
+            </p>
+          </header>
+
+          <div class="contact-methods">
+            <!-- Email -->
+            <a href="mailto:p2010hv@gmail.com" class="contact-card" id="contact-email-link" aria-label="Enviar e-mail para p2010hv@gmail.com">
+              <div class="contact-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="M22 6L12 13L2 6"/>
+                </svg>
+              </div>
+              <div class="contact-card-info">
+                <span class="contact-channel">E-MAIL OFICIAL</span>
+                <span class="contact-value">p2010hv@gmail.com</span>
+              </div>
+              <span class="contact-link-arrow">↗</span>
+            </a>
+
+            <!-- WhatsApp / Telefone -->
+            <a href="https://wa.me/5519999611169" target="_blank" rel="noopener noreferrer" class="contact-card" id="contact-wa-link" aria-label="Conversar pelo WhatsApp no +55 19 99961-1169">
+              <div class="contact-card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M22 16.92V19.92C22.0011 20.1986 21.9441 20.4743 21.8326 20.7294C21.721 20.9846 21.5574 21.2137 21.3521 21.4019C21.1468 21.5902 20.9044 21.7335 20.6407 21.8226C20.3769 21.9118 20.0975 21.9448 19.82 21.92C16.7428 21.5857 13.787 20.5342 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.19 12.85C3.49999 10.2413 2.44824 7.27109 2.12 4.18C2.095 3.90356 2.12787 3.62512 2.21652 3.36224C2.30517 3.09935 2.44766 2.85785 2.63486 2.65345C2.82206 2.44905 3.0498 2.28628 3.30339 2.17578C3.55699 2.06527 3.8309 2.00949 4.11 2.01H7.11C7.5953 1.99522 8.06796 2.16708 8.43264 2.49084C8.79731 2.81461 9.02758 3.26767 9.08 3.76C9.17753 4.67919 9.38927 5.58434 9.71 6.45C9.85449 6.83963 9.87072 7.2657 9.75678 7.66532C9.64284 8.06494 9.40379 8.41908 9.07 8.68L7.8 9.95C9.22467 12.454 11.276 14.5053 13.78 15.93L15.05 14.66C15.3109 14.3262 15.6651 14.0872 16.0647 13.9732C16.4643 13.8593 16.8904 13.8755 17.28 14.02C18.1457 14.3407 19.0508 14.5525 19.97 14.65C20.4678 14.7028 20.9255 14.9378 21.2508 15.3086C21.5761 15.6794 21.7458 16.1588 21.73 16.65L22 16.92Z"/>
+                </svg>
+              </div>
+              <div class="contact-card-info">
+                <span class="contact-channel">TELEFONE &amp; WHATSAPP</span>
+                <span class="contact-value">+55 19 99961-1169</span>
+              </div>
+              <span class="contact-link-arrow">↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 // RODAPÉ MINIMALISTA -->
+    <footer class="site-footer" id="rodape">
+      <div class="footer-container">
+        <div class="footer-col-main">
+          <p class="footer-brand">PEDRO — Desenvolvedor de Sistemas</p>
+          <p class="footer-motto">“Transformando ideias em experiências digitais.”</p>
+        </div>
+
+        <div class="footer-col-copy">
+          <p>© 2026 Pedro. Todos os direitos reservados.</p>
+        </div>
+
+        <div class="footer-col-top">
+          <a href="#hero" class="back-to-top-btn" id="btn-back-to-top" aria-label="Voltar ao topo da página">
+            <span>Voltar ao topo</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 13V1M7 1L1 7M7 1L13 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- MODAL DE VISUALIZAÇÃO DA APOSTILA DE EXCEL (PDF) -->
+  <div class="pdf-modal-backdrop" id="pdf-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-pdf-title">
+    <div class="pdf-modal-window glass-panel">
+      <div class="pdf-modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">DOCUMENTO PDF</span>
+          <h3 id="modal-pdf-title">Apostila de Excel — Para Melhor Idade (Pedro Henrique)</h3>
+        </div>
+        <div class="modal-actions">
+          <a href="apostila-excel.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+            <span>Abrir Nova Aba ↗</span>
+          </a>
+          <button type="button" class="modal-close-btn" id="btn-close-pdf-modal" aria-label="Fechar janela do leitor de PDF">
+            ✕
+          </button>
+        </div>
+      </div>
+      <div class="pdf-modal-body">
+        <iframe src="apostila-excel.pdf#toolbar=1" id="pdf-viewer-frame" title="Leitor da Apostila de Excel"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Principal da Aplicação Tridimensional -->
+  <script src="main.js"></script>
+</body>
+</html>
