@@ -68,8 +68,19 @@
   };
 
   // ---------------------------------------------------------------------------
-  // 2. DETECÇÃO DE SUPORTE WEBGL
+  // 2. DETECÇÃO DE SUPORTE WEBGL & OTIMIZAÇÃO DE HARDWARE
   // ---------------------------------------------------------------------------
+  function getOptimalPixelRatio() {
+    const dpr = window.devicePixelRatio || 1;
+    // Em computadores com GPU integrada ou menos de 6 threads, limita resolução interna para manter 60 FPS fluídos
+    const isLowPower = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+                       (navigator.deviceMemory && navigator.deviceMemory <= 4);
+    if (isLowPower) {
+      return Math.min(dpr, 1.0);
+    }
+    return Math.min(dpr, 1.5);
+  }
+
   function checkWebGLSupport() {
     try {
       const canvas = document.createElement('canvas');
@@ -113,19 +124,26 @@
       this.targetLookAt = new THREE.Vector3(0, 0, 0);
       this.currentLookAt = new THREE.Vector3(0, 0, 0);
 
-      // Renderer de Alta Fidelidade
+      // Vetores temporários reutilizáveis (Zero alocações no loop de animação = zero pausas de GC)
+      this._targetPos = new THREE.Vector3();
+      this._targetLook = new THREE.Vector3();
+      this.isPaused = false;
+
+      // Renderer de Alta Fidelidade Otimizado (sem sobrecarga de supersampling)
       this.renderer = new THREE.WebGLRenderer({
         canvas: this.canvas,
-        antialias: true,
+        antialias: !state.isMobile && (window.devicePixelRatio || 1) < 1.5,
         alpha: false,
-        powerPreference: 'high-performance'
+        powerPreference: 'high-performance',
+        precision: 'mediump'
       });
       this.renderer.setSize(state.windowWidth, state.windowHeight);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.setPixelRatio(getOptimalPixelRatio());
       this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure = 1.15;
 
       // Materiais Reutilizáveis com Acabamento Físico Minimalista
+      // (Standard em vez de Physical elimina render target offscreen de refração sem alteração visual)
       this.materials = {
         darkTitanium: new THREE.MeshStandardMaterial({
           color: 0x181B24,
@@ -159,11 +177,10 @@
           emissive: 0x064e3b,
           emissiveIntensity: 0.4
         }),
-        glassTranslucent: new THREE.MeshPhysicalMaterial({
+        glassTranslucent: new THREE.MeshStandardMaterial({
           color: 0x222634,
           metalness: 0.1,
           roughness: 0.15,
-          transmission: 0.7,
           transparent: true,
           opacity: 0.65
         }),
@@ -237,13 +254,13 @@
 
       // Anéis Arquitetônicos Orbitais
       this.heroRing1 = new THREE.Mesh(
-        new THREE.TorusGeometry(3.6, 0.035, 16, 80),
+        new THREE.TorusGeometry(3.6, 0.035, 12, 48),
         this.materials.glassTranslucent
       );
       this.heroRing1.rotation.x = Math.PI / 3;
 
       this.heroRing2 = new THREE.Mesh(
-        new THREE.TorusGeometry(4.3, 0.025, 16, 80),
+        new THREE.TorusGeometry(4.3, 0.025, 12, 48),
         this.materials.glassTranslucent
       );
       this.heroRing2.rotation.y = Math.PI / 4;
@@ -365,7 +382,7 @@
       this.sinucaVignette.add(border1, border2, border3, border4);
 
       // Bolas de Sinuca com Acabamento Especular
-      const ballGeo = new THREE.SphereGeometry(0.18, 32, 32);
+      const ballGeo = new THREE.SphereGeometry(0.18, 16, 16);
       const cueBallMat = new THREE.MeshStandardMaterial({ color: 0xF5F5F7, roughness: 0.1, metalness: 0.1 });
       const eightBallMat = new THREE.MeshStandardMaterial({ color: 0x0A0A0A, roughness: 0.1, metalness: 0.2 });
       const redBallMat = new THREE.MeshStandardMaterial({ color: 0xE11D48, roughness: 0.1, metalness: 0.2 });
@@ -546,6 +563,17 @@
 
     bindEvents() {
       window.addEventListener('resize', () => this.onResize(), { passive: true });
+
+      // Pausa a renderização WebGL quando a aba está em background para economizar recursos
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.isPaused = true;
+        } else {
+          this.isPaused = false;
+          state.clock.start();
+          requestAnimationFrame(() => this.render());
+        }
+      });
     }
 
     onResize() {
@@ -558,24 +586,25 @@
       this.camera.updateProjectionMatrix();
 
       this.renderer.setSize(state.windowWidth, state.windowHeight);
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      this.renderer.setPixelRatio(getOptimalPixelRatio());
     }
 
-    // --- CHOREOGRAFIA DA CÂMERA AO LONGO DO SCROLL ---
+    // --- CHOREOGRAFIA DA CÂMERA AO LONGO DO SCROLL COM CULLING DE SEÇÃO ---
     updateCameraFromScroll() {
       const p = state.scrollProgress; // 0.0 a 1.0
 
-      // Waypoints Cinematográficos
-      // 0.00: Hero
-      // 0.18: Sobre
-      // 0.38: Habilidades
-      // 0.58: Sinuca Game
-      // 0.74: Taskly
-      // 0.88: Apostila de Excel
-      // 1.00: Contato
+      // Culling inteligente de visibilidade: oculta grupos que não estão no campo de visão,
+      // economizando chamadas de desenho e cálculo de shaders na GPU
+      this.groups.hero.visible = p < 0.28;
+      this.groups.about.visible = p > 0.05 && p < 0.45;
+      this.groups.skills.visible = p > 0.18 && p < 0.62;
+      this.groups.sinuca.visible = p > 0.38 && p < 0.78;
+      this.groups.taskly.visible = p > 0.55 && p < 0.90;
+      this.groups.apostila.visible = p > 0.70 && p < 0.98;
+      this.groups.contact.visible = p > 0.82;
 
-      let targetPos = new THREE.Vector3();
-      let targetLook = new THREE.Vector3();
+      const targetPos = this._targetPos;
+      const targetLook = this._targetLook;
 
       if (p <= 0.15) {
         // Hero
@@ -638,46 +667,53 @@
     }
 
     render() {
+      if (this.isPaused) return;
       requestAnimationFrame(() => this.render());
+
+      // Interpolação contínua do mouse sincronizada com o render loop (elimina segundo RAF desnecessário)
+      state.mouse.x += (state.mouse.targetX - state.mouse.x) * 0.08;
+      state.mouse.y += (state.mouse.targetY - state.mouse.y) * 0.08;
 
       const elapsed = state.clock.getElapsedTime();
 
-      // 1. Rotação Contínua e Orgânica do Hero
-      if (this.heroCore) {
-        this.heroCore.rotation.y = elapsed * 0.18;
-        this.heroCore.rotation.x = Math.sin(elapsed * 0.12) * 0.15;
-      }
-      if (this.heroRing1) this.heroRing1.rotation.z = elapsed * 0.12;
-      if (this.heroRing2) this.heroRing2.rotation.y = -elapsed * 0.15;
+      // Câmera Cinematográfica
+      this.updateCameraFromScroll();
 
-      // 2. Microanimações nos Módulos de Habilidade
-      if (this.skillNodes) {
+      // 1. Rotação Contínua e Orgânica do Hero (executa apenas quando visível)
+      if (this.groups.hero.visible) {
+        if (this.heroCore) {
+          this.heroCore.rotation.y = elapsed * 0.18;
+          this.heroCore.rotation.x = Math.sin(elapsed * 0.12) * 0.15;
+        }
+        if (this.heroRing1) this.heroRing1.rotation.z = elapsed * 0.12;
+        if (this.heroRing2) this.heroRing2.rotation.y = -elapsed * 0.15;
+      }
+
+      // 2. Microanimações nos Módulos de Habilidade (executa apenas quando visível)
+      if (this.groups.skills.visible && this.skillNodes) {
         Object.values(this.skillNodes).forEach((node, i) => {
           node.rotation.y = elapsed * 0.3 + (i * 0.5);
           node.rotation.x = Math.sin(elapsed * 0.4 + i) * 0.15;
         });
       }
 
-      // 3. Flutuação Sutil das Composições de Projetos
-      if (this.sinucaVignette) {
+      // 3. Flutuação Sutil das Composições de Projetos (executa apenas quando visível)
+      if (this.groups.sinuca.visible && this.sinucaVignette) {
         this.sinucaVignette.position.y = Math.sin(elapsed * 0.8) * 0.08;
       }
-      if (this.tasklyVignette) {
+      if (this.groups.taskly.visible && this.tasklyVignette) {
         this.tasklyVignette.position.y = Math.cos(elapsed * 0.7) * 0.08;
       }
-      if (this.apostilaVignette) {
+      if (this.groups.apostila.visible && this.apostilaVignette) {
         this.apostilaVignette.position.y = Math.sin(elapsed * 0.75 + 1) * 0.08;
       }
 
-      // 4. Poeira Estelar do Contato
-      if (this.contactParticles) {
+      // 4. Poeira Estelar do Contato (executa apenas quando visível)
+      if (this.groups.contact.visible && this.contactParticles) {
         this.contactParticles.rotation.y = elapsed * 0.02;
       }
 
-      // 5. Câmera Cinematográfica
-      this.updateCameraFromScroll();
-
-      // 6. Desenho da Cena
+      // 5. Desenho da Cena
       this.renderer.render(this.scene, this.camera);
     }
   }
@@ -752,8 +788,6 @@
     }
 
     initDOMElements() {
-      this.cursorDot = document.getElementById('cursor-dot');
-      this.cursorRing = document.getElementById('cursor-ring');
       this.progressBar = document.getElementById('scroll-progress-bar');
       this.siteHeader = document.getElementById('site-header');
       this.audioBtn = document.getElementById('audio-toggle');
@@ -761,7 +795,9 @@
       this.mobileMenu = document.getElementById('mobile-menu');
       this.pdfModal = document.getElementById('pdf-modal');
       this.btnOpenPdf = document.getElementById('btn-open-pdf-modal');
+      this.btnMediaOpenPdf = document.getElementById('btn-media-open-apostila');
       this.btnClosePdf = document.getElementById('btn-close-pdf-modal');
+      this.pdfFrame = document.getElementById('pdf-viewer-frame');
 
       // Elementos do Inspector de Habilidades
       this.skillTabs = document.querySelectorAll('.skill-item');
@@ -778,54 +814,40 @@
     }
 
     bindEvents() {
-      // Movimento do Mouse & Cursor Cinematográfico
+      // Movimento do Mouse (Interação Parallax 3D)
       window.addEventListener('mousemove', (e) => {
         state.mouse.targetX = (e.clientX / state.windowWidth) * 2 - 1;
         state.mouse.targetY = -(e.clientY / state.windowHeight) * 2 + 1;
-
-        if (this.cursorDot && this.cursorRing) {
-          this.cursorDot.style.left = `${e.clientX}px`;
-          this.cursorDot.style.top = `${e.clientY}px`;
-
-          // Suavização do anel externo
-          requestAnimationFrame(() => {
-            this.cursorRing.style.left = `${e.clientX}px`;
-            this.cursorRing.style.top = `${e.clientY}px`;
-          });
-        }
       }, { passive: true });
 
-      // Animação Contínua de Parallax Suavizado
-      const updateMouseLerp = () => {
-        state.mouse.x += (state.mouse.targetX - state.mouse.x) * 0.08;
-        state.mouse.y += (state.mouse.targetY - state.mouse.y) * 0.08;
-        requestAnimationFrame(updateMouseLerp);
-      };
-      updateMouseLerp();
+      // Cálculo de Scroll com Cache e Throttle em RAF (Elimina Reflow Forçado e Travamentos)
+      let scrollTicking = false;
+      let cachedMaxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
 
-      // Expansão do Cursor em Elementos Clicáveis
-      const interactables = document.querySelectorAll('a, button, [role="tab"], .contact-card, .btn');
-      interactables.forEach(el => {
-        el.addEventListener('mouseenter', () => this.cursorRing && this.cursorRing.classList.add('is-hovered'));
-        el.addEventListener('mouseleave', () => this.cursorRing && this.cursorRing.classList.remove('is-hovered'));
-      });
+      window.addEventListener('resize', () => {
+        cachedMaxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+      }, { passive: true });
 
-      // Cálculo de Scroll e Barra de Progresso
       window.addEventListener('scroll', () => {
-        state.scrollY = window.scrollY;
-        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-        state.scrollProgress = maxScroll > 0 ? Math.min(Math.max(state.scrollY / maxScroll, 0), 1) : 0;
+        state.scrollY = window.scrollY || window.pageYOffset;
+        if (!scrollTicking) {
+          scrollTicking = true;
+          requestAnimationFrame(() => {
+            state.scrollProgress = Math.min(Math.max(state.scrollY / cachedMaxScroll, 0), 1);
 
-        if (this.progressBar) {
-          this.progressBar.style.width = `${state.scrollProgress * 100}%`;
-        }
+            if (this.progressBar) {
+              this.progressBar.style.width = `${state.scrollProgress * 100}%`;
+            }
 
-        if (this.siteHeader) {
-          if (state.scrollY > 50) {
-            this.siteHeader.classList.add('is-scrolled');
-          } else {
-            this.siteHeader.classList.remove('is-scrolled');
-          }
+            if (this.siteHeader) {
+              if (state.scrollY > 50) {
+                this.siteHeader.classList.add('is-scrolled');
+              } else {
+                this.siteHeader.classList.remove('is-scrolled');
+              }
+            }
+            scrollTicking = false;
+          });
         }
       }, { passive: true });
 
@@ -872,13 +894,23 @@
         });
       }
 
-      // Modal de Leitura da Apostila de Excel (PDF)
-      if (this.btnOpenPdf && this.pdfModal) {
-        this.btnOpenPdf.addEventListener('click', () => {
+      // Modal de Leitura da Apostila de Excel (PDF com Lazy Loading Inteligente)
+      const openPdfModal = () => {
+        if (this.pdfFrame && !this.pdfFrame.src && this.pdfFrame.dataset.src) {
+          this.pdfFrame.src = this.pdfFrame.dataset.src;
+        }
+        if (this.pdfModal) {
           this.pdfModal.classList.add('is-open');
           this.pdfModal.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
-        });
+        }
+      };
+
+      if (this.btnOpenPdf) {
+        this.btnOpenPdf.addEventListener('click', openPdfModal);
+      }
+      if (this.btnMediaOpenPdf) {
+        this.btnMediaOpenPdf.addEventListener('click', openPdfModal);
       }
 
       if (this.btnClosePdf && this.pdfModal) {

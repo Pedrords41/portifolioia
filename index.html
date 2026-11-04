@@ -41,9 +41,6 @@
     <div class="webgl-noise"></div>
   </div>
 
-  <!-- Cursor Customizado Cinematográfico -->
-  <div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
-  <div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
 
   <!-- Barra de Progresso de Rolagem Cinematográfica -->
   <div class="scroll-progress-bar" id="scroll-progress-bar" aria-hidden="true"></div>
@@ -364,11 +361,29 @@
                 </div>
               </div>
 
-              <div class="project-spatial-frame">
-                <div class="spatial-stage-cue">
-                  <span class="cue-label">COMPOSIÇÃO 3D INTERATIVA</span>
-                  <p class="cue-desc">Mesa de bilhar estilizada com física de iluminação em tempo real</p>
-                </div>
+              <div class="project-media-frame">
+                <a href="https://sinucagame.vercel.app/" target="_blank" rel="noopener noreferrer" class="project-preview-card" aria-label="Acessar Sinuca Game no Vercel">
+                  <div class="preview-browser-header">
+                    <div class="browser-controls">
+                      <span class="control-dot close"></span>
+                      <span class="control-dot min"></span>
+                      <span class="control-dot max"></span>
+                    </div>
+                    <div class="browser-url">
+                      <span class="url-protocol">https://</span>sinucagame.vercel.app
+                    </div>
+                    <span class="browser-badge">AO VIVO ↗</span>
+                  </div>
+                  <div class="preview-thumbnail-wrap">
+                    <img src="assets/sinuca.png" alt="Interface oficial do jogo Sinuca Game Brasil" class="preview-thumbnail" loading="lazy" />
+                    <div class="preview-hover-overlay">
+                      <span class="preview-launch-pill">
+                        <span>Jogar Agora</span>
+                        <span class="pill-arrow">↗</span>
+                      </span>
+                    </div>
+                  </div>
+                </a>
               </div>
             </div>
           </article>
@@ -405,11 +420,29 @@
                 </div>
               </div>
 
-              <div class="project-spatial-frame">
-                <div class="spatial-stage-cue">
-                  <span class="cue-label">COMPOSIÇÃO 3D INTERATIVA</span>
-                  <p class="cue-desc">Estrutura Kanban tridimensional com cartões translúcidos e nós de status</p>
-                </div>
+              <div class="project-media-frame">
+                <a href="https://taskl-yatt.vercel.app/" target="_blank" rel="noopener noreferrer" class="project-preview-card" aria-label="Acessar Taskly no Vercel">
+                  <div class="preview-browser-header">
+                    <div class="browser-controls">
+                      <span class="control-dot close"></span>
+                      <span class="control-dot min"></span>
+                      <span class="control-dot max"></span>
+                    </div>
+                    <div class="browser-url">
+                      <span class="url-protocol">https://</span>taskl-yatt.vercel.app
+                    </div>
+                    <span class="browser-badge">AO VIVO ↗</span>
+                  </div>
+                  <div class="preview-thumbnail-wrap">
+                    <img src="assets/taskly.png" alt="Dashboard do sistema de gerenciamento de tarefas Taskly" class="preview-thumbnail" loading="lazy" />
+                    <div class="preview-hover-overlay">
+                      <span class="preview-launch-pill">
+                        <span>Abrir Dashboard</span>
+                        <span class="pill-arrow">↗</span>
+                      </span>
+                    </div>
+                  </div>
+                </a>
               </div>
             </div>
           </article>
@@ -451,11 +484,29 @@
                 </div>
               </div>
 
-              <div class="project-spatial-frame">
-                <div class="spatial-stage-cue">
-                  <span class="cue-label">COMPOSIÇÃO 3D INTERATIVA</span>
-                  <p class="cue-desc">Caderno editorial espacial com reticulado tridimensional e matriz de cálculo</p>
-                </div>
+              <div class="project-media-frame">
+                <button type="button" class="project-preview-card preview-card-button" id="btn-media-open-apostila" aria-label="Abrir Apostila de Excel no leitor integrado">
+                  <div class="preview-browser-header">
+                    <div class="browser-controls">
+                      <span class="control-dot close"></span>
+                      <span class="control-dot min"></span>
+                      <span class="control-dot max"></span>
+                    </div>
+                    <div class="browser-url">
+                      <span class="url-doc-icon">📄</span>apostila-excel.pdf • 30 páginas
+                    </div>
+                    <span class="browser-badge doc-badge">LEITOR PDF ↗</span>
+                  </div>
+                  <div class="preview-thumbnail-wrap preview-thumbnail-doc">
+                    <img src="assets/apostila.png" alt="Capa oficial da Apostila de Excel para Melhor Idade por Pedro Henrique" class="preview-thumbnail doc-cover" loading="lazy" />
+                    <div class="preview-hover-overlay">
+                      <span class="preview-launch-pill">
+                        <span>Folhear Apostila</span>
+                        <span class="pill-arrow">↗</span>
+                      </span>
+                    </div>
+                  </div>
+                </button>
               </div>
             </div>
           </article>
@@ -553,7 +604,7 @@
         </div>
       </div>
       <div class="pdf-modal-body">
-        <iframe src="apostila-excel.pdf#toolbar=1" id="pdf-viewer-frame" title="Leitor da Apostila de Excel"></iframe>
+        <iframe data-src="apostila-excel.pdf#toolbar=1" id="pdf-viewer-frame" title="Leitor da Apostila de Excel" loading="lazy"></iframe>
       </div>
     </div>
   </div>
